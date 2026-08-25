@@ -1,0 +1,7 @@
+dist
+node_modules
+coverage
+.wrangler
+migrations
+worker-configuration.d.ts
+package-lock.json

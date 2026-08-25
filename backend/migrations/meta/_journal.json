@@ -1,0 +1,76 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1787021124940,
+      "tag": "0000_premium_triathlon",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1787022057929,
+      "tag": "0001_reflective_paibok",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1787023942288,
+      "tag": "0002_same_george_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1787024695743,
+      "tag": "0003_strange_shooting_star",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1787041234375,
+      "tag": "0004_tan_archangel",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1787042658341,
+      "tag": "0005_married_khan",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1787045627569,
+      "tag": "0006_faithful_timeslip",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1787047166642,
+      "tag": "0007_bizarre_cassandra_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1787080255376,
+      "tag": "0008_graceful_thing",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1787164083305,
+      "tag": "0009_thin_shriek",
+      "breakpoints": true
+    }
+  ]
+}

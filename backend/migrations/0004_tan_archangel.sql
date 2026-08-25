@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `rental_requests_active_unique` ON `rental_requests` (`tenant_id`,`property_id`) WHERE "rental_requests"."status" IN ('PENDING', 'ACCEPTED');

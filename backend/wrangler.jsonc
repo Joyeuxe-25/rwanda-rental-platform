@@ -1,0 +1,89 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rwanda-rental-platform-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-09",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Local development server. Frontend will run on :3000, API on :4000.
+  "dev": {
+    "port": 4000,
+  },
+
+  // Non-secret configuration values, available on the Worker `env`.
+  // Secrets (API tokens, etc.) must NOT go here — use `.dev.vars` locally and
+  // `wrangler secret put <NAME>` for deployed environments.
+  "vars": {
+    "ENVIRONMENT": "development",
+    "FRONTEND_URL": "http://localhost:3000",
+  },
+
+  // Cloudflare D1 (SQLite) binding — exposed on env as `DB`.
+  // NOTE (B0-R): `database_id` is a placeholder. A real D1 database must be
+  // created in later phases via:
+  //   wrangler d1 create rwanda_rental
+  // then paste the returned id here. Local `wrangler dev` emulates D1 without
+  // needing a real id. No business tables are created in this phase.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "rwanda_rental",
+      "database_id": "PLACEHOLDER_CREATE_IN_LATER_PHASE",
+      "migrations_dir": "migrations",
+    },
+  ],
+
+  // Cloudflare R2 (object storage) binding — exposed on env as `ASSETS`.
+  // Reserved for property images in a later phase (B5). No upload logic in B0-R.
+  // NOTE: create the bucket later via: wrangler r2 bucket create rwanda-rental-assets
+  "r2_buckets": [
+    {
+      "binding": "ASSETS",
+      "bucket_name": "rwanda-rental-assets",
+    },
+  ],
+
+  "observability": {
+    "enabled": true,
+  },
+
+  // ---------------------------------------------------------------------------
+  // PRODUCTION environment (B16 handoff). Deploy with: `wrangler deploy --env production`.
+  //
+  // Named environments do NOT inherit top-level vars/bindings, so they are
+  // redefined here. Every value below marked REPLACE_WITH_* is an OBVIOUS
+  // placeholder that Wrangler will REJECT at deploy time (invalid D1 id / URL),
+  // so a deploy cannot silently succeed against unconfigured infrastructure.
+  // The user replaces these MANUALLY after creating the resources — see
+  // docs/DEPLOYMENT.md. Secrets are NEVER placed here; use `wrangler secret put`.
+  // ---------------------------------------------------------------------------
+  "env": {
+    "production": {
+      "name": "rwanda-rental-platform-api-prod",
+      "vars": {
+        "ENVIRONMENT": "production",
+        // Exact production frontend origin (https). Never "*", never localhost.
+        "FRONTEND_URL": "REPLACE_WITH_PRODUCTION_FRONTEND_ORIGIN",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "rwanda_rental",
+          // From `wrangler d1 create rwanda_rental` (a UUID). Placeholder is invalid.
+          "database_id": "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID",
+          "migrations_dir": "migrations",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "binding": "ASSETS",
+          // Must NOT be publicly writable; the Worker is the access-control boundary.
+          "bucket_name": "rwanda-rental-assets",
+        },
+      ],
+      "observability": {
+        "enabled": true,
+      },
+    },
+  },
+}

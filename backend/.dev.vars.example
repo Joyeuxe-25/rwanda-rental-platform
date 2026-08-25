@@ -1,0 +1,28 @@
+# Local development secrets for `wrangler dev` (loaded automatically from
+# `.dev.vars`, which is git-ignored). Copy this file to `.dev.vars` and fill in
+# real values locally. NEVER commit real secrets.
+#
+# ---------------------------------------------------------------------------
+# MTN MoMo (B10) — Collection API, SANDBOX.
+# Obtain these from the MTN MoMo developer portal (https://momodeveloper.mtn.com):
+#   - subscribe to the "Collection" product   → subscription key
+#   - create an API user + API key (sandbox provisioning)
+# The integration is INACTIVE unless BASE_URL + SUBSCRIPTION_KEY + API_USER +
+# API_KEY are all present. Placeholders below — do not use as-is.
+# ---------------------------------------------------------------------------
+# MTN_MOMO_BASE_URL=https://sandbox.momodeveloper.mtn.com
+# MTN_MOMO_SUBSCRIPTION_KEY=your-collection-subscription-key
+# MTN_MOMO_API_USER=your-api-user-uuid
+# MTN_MOMO_API_KEY=your-api-key
+# MTN_MOMO_TARGET_ENVIRONMENT=sandbox        # 'sandbox' (dev) | 'mtnrwanda' (Rwanda production)
+# NOTE: MTN production X-Target-Environment is a COUNTRY id (mtnrwanda), NOT
+# "production". A non-production ENVIRONMENT may only use 'sandbox'.
+# Shared secret we embed in the callback URL we register with MTN, so our
+# webhook endpoint can authenticate incoming callbacks (MTN callbacks are not
+# cryptographically signed):
+# MTN_MOMO_CALLBACK_TOKEN=a-long-random-secret
+# Optional X-Callback-Url sent with request-to-pay (must include the token):
+# MTN_MOMO_CALLBACK_URL=https://your-host/api/v1/payment-webhooks/MTN_MOMO?token=a-long-random-secret
+#
+# SAFETY: a non-production ENVIRONMENT with MTN_MOMO_TARGET_ENVIRONMENT=production
+# is refused at runtime (MTN_UNSAFE_ENVIRONMENT) — dev builds cannot move real money.

@@ -1,0 +1,1 @@
+CREATE INDEX `properties_public_sort_idx` ON `properties` (`is_published`,`published_at`);

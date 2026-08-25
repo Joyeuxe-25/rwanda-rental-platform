@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Design tokens — Rwanda Rental Platform "Organic Modernism".
+ *
+ * Approved palette (hex → HSL channels for Tailwind alpha support):
+ *   Deep Indigo   #273469   Sage Green   #7A9B76   Terracotta   #C96A4A
+ *   Warm Cream    #F7F4EE   White        #FFFFFF   Deep Charcoal #252525
+ *   Warm Grey     #6B6B63   Soft Grey    #DDD9D0
+ *   Success       #3F7D58   Warning      #C58A32   Error        #B84C4C
+ *
+ * Components must use the semantic tokens (bg-background, text-foreground,
+ * bg-primary, border-border, …) — never raw hex.
+ */
+@layer base {
+  :root {
+    /* Surfaces & text */
+    --background: 40 36% 95%; /* Warm Cream  */
+    --foreground: 0 0% 15%; /* Deep Charcoal */
+    --surface: 0 0% 100%; /* White */
+    --surface-foreground: 0 0% 15%;
+
+    --muted: 41 16% 90%; /* soft warm neutral */
+    --muted-foreground: 60 4% 40%; /* Warm Grey */
+
+    /* Brand */
+    --primary: 228 46% 28%; /* Deep Indigo */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 114 16% 54%; /* Sage Green */
+    --secondary-foreground: 0 0% 15%;
+    --accent: 15 54% 54%; /* Terracotta */
+    --accent-foreground: 0 0% 100%;
+
+    /* Status */
+    --success: 144 33% 37%;
+    --success-foreground: 0 0% 100%;
+    --warning: 36 60% 48%;
+    --warning-foreground: 0 0% 15%;
+    --destructive: 0 43% 51%; /* Error */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Lines & focus */
+    --border: 41 16% 84%; /* Soft Grey */
+    --input: 41 16% 84%;
+    --ring: 228 46% 28%; /* Indigo focus ring */
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
+  }
+
+  /* Visible keyboard focus everywhere (accessibility). */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight text-foreground;
+  }
+}
+
+/**
+ * Type scale (Organic Modernism). Semantic HTML headings should be used for
+ * structure; these utility classes apply the responsive visual scale. Prefer
+ * `.text-h2` on an <h2>, etc., rather than styling arbitrary elements.
+ */
+@layer components {
+  .text-display {
+    @apply font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl;
+  }
+  .text-h1 {
+    @apply font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl;
+  }
+  .text-h2 {
+    @apply font-display text-2xl font-semibold tracking-tight sm:text-3xl;
+  }
+  .text-h3 {
+    @apply font-display text-xl font-semibold tracking-tight;
+  }
+  .text-h4 {
+    @apply font-display text-lg font-semibold tracking-tight;
+  }
+  .text-body-lg {
+    @apply text-lg leading-relaxed;
+  }
+  .text-body {
+    @apply text-base leading-relaxed;
+  }
+  .text-body-sm {
+    @apply text-sm leading-relaxed;
+  }
+  .text-caption {
+    @apply text-xs text-muted-foreground;
+  }
+  .text-label {
+    @apply text-sm font-medium;
+  }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

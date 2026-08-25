@@ -1,0 +1,52 @@
+{
+  "name": "rwanda-rental-platform-backend",
+  "version": "0.1.0",
+  "description": "Backend REST API for the Rwanda Rental Platform (Phase B0-R — Hono + Cloudflare Workers foundation)",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --dry-run",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "docs:validate": "node scripts/validate-openapi.mjs",
+    "validate:production": "node scripts/validate-production-config.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs",
+    "deploy:production": "node scripts/deploy-production.mjs",
+    "cf-typegen": "wrangler types",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply rwanda_rental --local",
+    "db:migrate:remote": "wrangler d1 migrations apply rwanda_rental --remote",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.38.4",
+    "hono": "^4.6.20",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.20.1",
+    "@vitest/coverage-v8": "^2.1.9",
+    "drizzle-kit": "^0.30.2",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^2.1.8",
+    "wrangler": "^3.101.0"
+  }
+}

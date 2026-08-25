@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Development secrets
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# Cloudflare / Wrangler
+.wrangler/
+
+# Next.js
+.next/
+.vercel/
+
+# Build output
+dist/
+build/
+out/
+
+# Tests / coverage
+coverage/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Editor files
+.vscode/
+.idea/
+
+# Local caches
+.cache/
+
+# TypeScript build cache
+*.tsbuildinfo

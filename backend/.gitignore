@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build / bundler output
+dist/
+build/
+
+# Cloudflare / Wrangler
+.wrangler/
+.mf/
+worker-configuration.d.ts
+
+# Local secrets / env
+.dev.vars
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test / coverage output
+coverage/
+.vitest/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temp
+*.tmp
+tmp/
