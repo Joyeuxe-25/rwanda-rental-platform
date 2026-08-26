@@ -70,7 +70,7 @@
           "binding": "DB",
           "database_name": "rwanda_rental",
           // From `wrangler d1 create rwanda_rental` (a UUID). Placeholder is invalid.
-          "database_id": "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID",
+          "database_id": "b553219b-6c65-40ca-8c76-19db357a91a6",
           "migrations_dir": "migrations",
         },
       ],
