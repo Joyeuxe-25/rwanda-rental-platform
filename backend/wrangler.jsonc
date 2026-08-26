@@ -63,7 +63,8 @@
       "vars": {
         "ENVIRONMENT": "production",
         // Exact production frontend origin (https). Never "*", never localhost.
-        "FRONTEND_URL": "REPLACE_WITH_PRODUCTION_FRONTEND_ORIGIN",
+       "FRONTEND_URL": "https://rwanda-rental-platform.vercel.app",
+       "SESSION_SAMESITE": "None",
       },
       "d1_databases": [
         {
