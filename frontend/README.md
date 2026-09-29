@@ -536,6 +536,73 @@ npm run typecheck && npm run lint && npm run format:check && npm test && npm run
   backend/D1/R2, secrets, MTN onboarding, domain/HTTPS, Vercel/Cloudflare config,
   WAF/rate-limiting, backups, monitoring, and legal/compliance sign-off.
 
+## Landlord property management & publishing (F11)
+
+A complete landlord experience for creating, editing, publishing, and
+illustrating listings — built entirely on the **existing** approved B4/B5 APIs
+(no backend change). All routes are landlord-only and `noindex`.
+
+### Routes (all `noindex`, `RequireRole="LANDLORD"`)
+
+- **`/landlord/properties`** — My Properties list (drafts + published), with a
+  separate **publication** badge (landlord-controlled) and **availability** badge
+  (backend-controlled).
+- **`/landlord/properties/new`** — create a draft.
+- **`/landlord/properties/[id]`** — management detail: publish/unpublish, edit,
+  delete, "view public listing" (when published), and the photo manager.
+- **`/landlord/properties/[id]/edit`** — edit; submits **only changed fields**
+  (never an empty `PATCH`).
+
+Anonymous → `/login?returnTo=<path>`; wrong role → a safe forbidden state (never
+the other role's data). "My properties" appears in landlord navigation only.
+
+### Publication vs availability (kept strictly separate)
+
+- **Publication** (`isPublished`) is the **only** landlord-mutable state, via the
+  dedicated `publish`/`unpublish` endpoints. Publishing requires a description
+  (`PROPERTY_INCOMPLETE` → "Add a description…").
+- **Availability** (`status`: AVAILABLE/OCCUPIED/UNAVAILABLE) is **backend-owned
+  and read-only** here — there are no "set available/occupied" controls.
+
+### Contract safety (B4/B5)
+
+- Bodies carry **only editable fields** — never `id`, `landlordId`, `status`,
+  `isPublished`, `publishedAt`, `currency`, or timestamps. IDs travel in the URL.
+- Backend field names are used exactly: **`otherCharges`**, **`cell`**,
+  **`village`** (not `additionalCharges`/`villageOrArea`).
+- Delete maps `PROPERTY_CANNOT_BE_DELETED` → "…has related rental records."
+
+### Photos (B5)
+
+- Upload is **multipart/form-data**, field name **`file`** only (JPEG/PNG/WebP,
+  ≤ 5 MB, ≤ 20/property — checked client-side and enforced by the backend).
+- Set primary, reorder (**sends `{ imageIds }` only**), and delete. Images render
+  **only** from backend-provided URLs via `toApiUrl` — **no storage keys are ever
+  sent or constructed**.
+
+### Data access
+
+`lib/managed-properties.ts` reuses the single `lib/api.ts` client (cookie
+`credentials: 'include'`, reads `no-store`, no token storage, no external
+provider call). Types in `types/managed-property.ts` mirror only safe fields.
+
+### No online payment (product decision)
+
+F11 adds **no** rent-payment UI on property management — no Make Payment, MTN/
+Airtel, forms, receipts, or payment-history links. Rent is handled directly
+between tenant and landlord. (The pre-existing F6 payment flow is unchanged by
+F11; retiring it is a separate future task.)
+
+### Tests
+
+`tests/managed-properties-lib.test.tsx` (real lib vs. mocked `fetch`) asserts the
+exact wire contract — multipart `file`, `{ imageIds }` reorder, no forbidden body
+keys, credentials, no token. `tests/manage-properties.test.tsx` covers list/empty/
+anonymous-redirect/tenant-forbidden, create validation + safe-fields-only, edit
+changed-only, publish/unpublish/publish-error, delete confirmation +
+`PROPERTY_CANNOT_BE_DELETED`, availability-read-only, and the image manager
+(upload/set-primary/reorder/delete), plus a no-payment-UI assertion.
+
 ## Public marketplace (F2)
 
 Routes (all anonymous — no login required):

@@ -13,6 +13,8 @@ export interface NavItem {
 export function roleFeatureLinks(role: UserRole): NavItem[] {
   const isLandlord = role === 'LANDLORD';
   return [
+    // Landlord-only: property management & publishing (F11). Never shown to tenants.
+    ...(isLandlord ? [{ href: '/landlord/properties', label: 'My properties' }] : []),
     isLandlord
       ? { href: '/landlord/requests', label: 'Rental requests' }
       : { href: '/requests', label: 'My requests' },
