@@ -239,8 +239,11 @@ export async function getPublicImageBytes(
   env: Bindings,
   propertyId: string,
   imageId: string,
+  ownerId?: string,
 ): Promise<{ bytes: ArrayBuffer; contentType: string }> {
-  const property = await propertyRepo.findPublishedById(db, propertyId);
+  const property = ownerId
+    ? await propertyRepo.findByIdForLandlord(db, propertyId, ownerId)
+    : await propertyRepo.findPublishedById(db, propertyId);
   if (!property) {
     throw ApiError.notFound('Image not found', 'IMAGE_NOT_FOUND');
   }

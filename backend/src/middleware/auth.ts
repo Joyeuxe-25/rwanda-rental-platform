@@ -56,6 +56,29 @@ export const requireAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
 };
 
 /**
+ * Best-effort authentication for public image requests.
+ */
+export const optionalAuth: MiddlewareHandler<AppEnv> = async (c, next) => {
+  const raw = getCookie(c, SESSION_COOKIE_NAME);
+  if (raw) {
+    try {
+      const db = getDb(c.env);
+      const tokenHash = await hashToken(raw);
+      const session = await sessionRepo.findSessionByTokenHash(db, tokenHash);
+      if (session && !session.revokedAt && session.expiresAt.getTime() >= Date.now()) {
+        const user = await userRepo.findUserById(db, session.userId);
+        if (user) {
+          c.set('session', session);
+          c.set('user', userRepo.toSafeUser(user));
+        }
+      }
+    } catch {
+      // Ignore invalid optional sessions and continue as an anonymous request.
+    }
+  }
+  await next();
+};
+/**
  * Non-null accessor for the authenticated user. Use inside handlers that run
  * AFTER `requireAuth`. Throws (500-safe) if called without authentication.
  */

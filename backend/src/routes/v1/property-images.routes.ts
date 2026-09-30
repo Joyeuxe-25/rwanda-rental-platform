@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 
 import * as imageController from '../../controllers/property-image.controller';
-import { requireAuth } from '../../middleware/auth';
+import { optionalAuth, requireAuth } from '../../middleware/auth';
 import { requireRole } from '../../middleware/role';
 import type { AppEnv } from '../../types';
 import { validate } from '../../validators/validate';
@@ -35,6 +35,6 @@ images.patch(
 images.delete('/mine/:propertyId/images/:imageId', ...landlordOnly, imageController.remove);
 
 // Public image bytes (published properties only)
-images.get('/:propertyId/images/:imageId', imageController.getPublic);
+images.get('/:propertyId/images/:imageId', optionalAuth, imageController.getPublic);
 
 export default images;

@@ -86,11 +86,14 @@ export async function remove(c: Context<AppEnv>) {
 
 /** GET /api/v1/properties/:propertyId/images/:imageId (public bytes) */
 export async function getPublic(c: Context<AppEnv>) {
+  const user = c.get('user');
+  const ownerId = user?.role === 'LANDLORD' ? user.id : undefined;
   const { bytes, contentType } = await imageService.getPublicImageBytes(
     getDb(c.env),
     c.env,
     param(c, 'propertyId'),
     param(c, 'imageId'),
+    ownerId,
   );
   return c.body(bytes, 200, {
     'Content-Type': contentType,
