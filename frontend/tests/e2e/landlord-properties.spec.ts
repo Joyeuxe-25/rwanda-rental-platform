@@ -1,14 +1,18 @@
 import { promises as fs } from 'node:fs';
-
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-
 const password = 'F11-local-e2e-password';
 const viewports = [375, 414, 768, 1024, 1280, 1440];
+let testPhoneSequence = 0;
+const testPhoneBase = 1_000_000 + (Date.now() % 8_000_000);
+
+function nextTestPhone(): string {
+  const localNumber = testPhoneBase + testPhoneSequence++;
+  return `+25078${String(localNumber).padStart(7, '0').slice(-7)}`;
+}
 const pngBytes = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
   'base64',
 );
-
 async function register(page: Page, role: 'LANDLORD' | 'TENANT', suffix: string) {
   await page.goto(
     `/register?returnTo=${encodeURIComponent(role === 'LANDLORD' ? '/landlord/properties' : '/')}`,
@@ -16,19 +20,28 @@ async function register(page: Page, role: 'LANDLORD' | 'TENANT', suffix: string)
   await page.getByLabel('First name').fill('F11');
   await page.getByLabel('Last name').fill(`E2E ${role}`);
   await page.getByLabel('Email').fill(`f11-${role.toLowerCase()}-${suffix}@example.test`);
-  await page
-    .getByLabel('Phone')
-    .fill(`+25078${suffix.replace(/\D/g, '').slice(-7).padStart(7, '0')}`);
+  await page.getByLabel('Phone').fill(nextTestPhone());
   await page.getByLabel('Password').fill(password);
   await page
     .getByText(role === 'LANDLORD' ? 'I want to list a property' : "I'm looking for a home", {
       exact: true,
     })
     .click();
-  await page.getByRole('button', { name: 'Create account' }).click();
+  const [registrationResponse] = await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/v1/auth/register') && response.request().method() === 'POST',
+    ),
+    page.getByRole('button', { name: 'Create account' }).click(),
+  ]);
   await page.waitForLoadState('networkidle');
+  const hasSessionCookie = (await page.context().cookies()).some(
+    (cookie) => cookie.name === 'rrp_session' && cookie.value.length > 0,
+  );
+  console.log(
+    `[F11 auth] register=${registrationResponse.status()} sessionCookie=${hasSessionCookie} login=not-used (registration auto-login) url=${page.url()}`,
+  );
 }
-
 async function createProperty(page: Page, title: string) {
   await page.goto('/landlord/properties/new');
   await page.getByLabel('Title').fill(title);
@@ -47,9 +60,8 @@ async function createProperty(page: Page, title: string) {
   await page.getByLabel('Cell').fill('Rukiri');
   await page.getByLabel('Village / area').fill('F11 E2E Area');
   await page.getByRole('button', { name: 'Create property' }).click();
-  await expect(page).toHaveURL(/\/landlord\/properties\/[^/]+$/);
+  await expect(page).toHaveURL(/\/landlord\/properties\/(?!new$)[^/]+$/);
 }
-
 async function deleteProperty(page: Page, propertyUrl: string) {
   await page.goto(propertyUrl);
   const unpublish = page.getByRole('button', { name: 'Unpublish' });
@@ -63,7 +75,6 @@ async function deleteProperty(page: Page, propertyUrl: string) {
   await dialog.getByRole('button', { name: 'Delete property' }).click();
   await expect(page).toHaveURL(/\/landlord\/properties$/);
 }
-
 async function writeImages(testInfo: TestInfo) {
   const first = testInfo.outputPath('f11-first.png');
   const second = testInfo.outputPath('f11-second.png');
@@ -71,13 +82,11 @@ async function writeImages(testInfo: TestInfo) {
   await fs.writeFile(second, pngBytes);
   return { first, second };
 }
-
 async function expectNoHorizontalOverflow(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
 }
-
 test.describe('F11 landlord property lifecycle', () => {
   test('landlord can create, edit, manage images, publish, unpublish, republish, and delete', async ({
     page,
@@ -88,14 +97,12 @@ test.describe('F11 landlord property lifecycle', () => {
     const updatedTitle = `${title} Updated`;
     let propertyUrl: string | undefined;
     let otherContext;
-
     try {
       await register(page, 'LANDLORD', suffix);
       await createProperty(page, title);
       propertyUrl = page.url();
-      await expect(page.getByText('Draft')).toBeVisible();
+      await expect(page.getByText('Draft', { exact: true })).toBeVisible();
       await expect(page.getByText('Available')).toBeVisible();
-
       await page.getByRole('link', { name: 'Edit' }).click();
       await page.getByLabel('Title').fill('');
       await page.getByRole('button', { name: 'Save changes' }).click();
@@ -104,15 +111,13 @@ test.describe('F11 landlord property lifecycle', () => {
       await page.getByRole('button', { name: 'Save changes' }).click();
       await expect(page).toHaveURL(propertyUrl);
       await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible();
-
       const images = await writeImages(testInfo);
       await page.locator('input[type=file]').setInputFiles(images.first);
       await expect(page.getByText('1 of 20')).toBeVisible();
       await page.locator('input[type=file]').setInputFiles(images.second);
       await expect(page.getByText('2 of 20')).toBeVisible();
       await page.getByRole('button', { name: 'Set primary' }).click();
-      await expect(page.getByText('Primary')).toHaveCount(2);
-
+      await expect(page.getByRole('button', { name: 'Primary', exact: true })).toBeDisabled();
       const secondImageSrc = await page
         .getByRole('img', { name: 'Property photo 2' })
         .getAttribute('src');
@@ -120,7 +125,6 @@ test.describe('F11 landlord property lifecycle', () => {
       await page.goto('/landlord/properties');
       const cardImage = page.getByRole('img', { name: `${updatedTitle} primary image` });
       await expect(cardImage).toHaveAttribute('src', secondImageSrc!);
-
       await page.goto(propertyUrl);
       const firstBefore = await page
         .getByRole('img', { name: 'Property photo 1' })
@@ -139,43 +143,36 @@ test.describe('F11 landlord property lifecycle', () => {
         secondBefore!,
       );
       expect(firstBefore).not.toBe(secondBefore);
-
       await page.getByRole('button', { name: 'Delete photo 2' }).click();
       await expect(page.getByRole('img', { name: 'Property photo 2' })).toHaveCount(0);
-
       await page.getByRole('button', { name: 'Publish' }).click();
-      await expect(page.getByText('Published')).toBeVisible();
+      await expect(page.getByText('Published', { exact: true })).toBeVisible();
       const publicLink = page.getByRole('link', { name: 'View public listing' });
       await expect(publicLink).toBeVisible();
       const publicUrl = await publicLink.getAttribute('href');
       expect(publicUrl).toBeTruthy();
-
       await page.goto('/properties');
       await expect(page.getByRole('link', { name: updatedTitle })).toBeVisible();
       await page.getByRole('link', { name: updatedTitle }).click();
       await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible();
       await expect(page.locator(`img[alt^="${updatedTitle}"]`)).toHaveCount(1);
-
       for (const width of viewports) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(propertyUrl);
         await expectNoHorizontalOverflow(page);
-        await page.goto(publicUrl!);
+        await page.goto(publicUrl!, { waitUntil: 'domcontentloaded' });
         await expectNoHorizontalOverflow(page);
       }
-
       await page.goto(propertyUrl);
       await page.getByRole('button', { name: 'Unpublish' }).click();
-      await expect(page.getByText('Draft')).toBeVisible();
-      await page.goto(publicUrl!);
+      await expect(page.getByText('Draft', { exact: true })).toBeVisible();
+      await page.goto(publicUrl!, { waitUntil: 'domcontentloaded' });
       await expect(page.getByRole('heading', { name: 'Property not found' })).toBeVisible();
-
       await page.goto(propertyUrl);
       await page.getByRole('button', { name: 'Publish' }).click();
-      await expect(page.getByText('Published')).toBeVisible();
-      await page.goto(publicUrl!);
+      await expect(page.getByText('Published', { exact: true })).toBeVisible();
+      await page.goto(publicUrl!, { waitUntil: 'domcontentloaded' });
       await expect(page.getByRole('heading', { name: updatedTitle })).toBeVisible();
-
       otherContext = await browser.newContext();
       const otherPage = await otherContext.newPage();
       await register(otherPage, 'LANDLORD', `${suffix}-other`);
@@ -188,13 +185,11 @@ test.describe('F11 landlord property lifecycle', () => {
       if (propertyUrl) await deleteProperty(page, propertyUrl).catch(() => undefined);
     }
   });
-
   test('anonymous users are redirected and tenants cannot access landlord management', async ({
     page,
   }) => {
     await page.goto('/landlord/properties');
     await expect(page).toHaveURL(/\/login\?returnTo=/);
-
     const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     await register(page, 'TENANT', suffix);
     await page.goto('/landlord/properties');

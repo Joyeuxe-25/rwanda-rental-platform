@@ -17,7 +17,13 @@ export function createApp() {
   const app = new Hono<AppEnv>();
 
   // --- Security -------------------------------------------------------------
-  app.use('*', secureHeaders());
+  app.use('*', (c, next) =>
+    secureHeaders({
+      crossOriginResourcePolicy: /^\/api\/v1\/properties\/[^/]+\/images\/[^/]+$/.test(c.req.path)
+        ? 'cross-origin'
+        : true,
+    })(c, next),
+  );
 
   // CORS is configurable (not permanently open). The allowed origin is an exact
   // match read from the `FRONTEND_URL` binding at request time (never a wildcard

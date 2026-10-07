@@ -113,37 +113,36 @@ export function hasActiveFilters(params: PropertyListParams): boolean {
 }
 
 /**
- * Fetch a page of published properties (B17). Public/anonymous. Revalidated
- * ~30s (shorter than detail's 60s, since availability changes) so identical
- * filter queries dedupe without going unreasonably stale. Errors propagate as
- * `ApiRequestError` for the caller to render a friendly state.
+ * Fetch a page of published properties (B17). Public/anonymous. Discovery must
+ * reflect landlord publish/unpublish actions promptly, so this read bypasses
+ * the Next.js data cache. Errors propagate as `ApiRequestError` for the caller
+ * to render a friendly state.
  */
 export async function listPublishedProperties(
   params: PropertyListParams,
 ): Promise<PropertyListResult> {
   return api.get<PropertyListResult>(`/properties${toQueryString(params)}`, {
-    next: { revalidate: 30 },
+    cache: 'no-store',
   });
 }
 
 /**
  * Fetch a single published property by id. Returns `null` on 404 (not found /
  * unpublished) so callers can render a not-found experience; other errors throw
- * (handled by the route error boundary). Revalidated periodically so
- * availability does not go stale.
+ * (handled by the route error boundary). Public detail reads bypass the
+ * Next.js data cache so publish/unpublish state is reflected immediately.
  *
- * Pass `{ fresh: true }` for flows that must see CURRENT availability at render
- * time (e.g. the rental-request page, where a stale AVAILABLE could mislead the
- * tenant) — it bypasses the cache with `no-store`.
+ * The options parameter is retained for call-site compatibility; public detail
+ * reads are always fresh because publication state is user-visible.
  */
 export async function getPublicProperty(
   id: string,
-  opts: { fresh?: boolean } = {},
+  _opts: { fresh?: boolean } = {},
 ): Promise<PublicProperty | null> {
   try {
     const data = await api.get<{ property: PublicProperty }>(
       `/properties/${encodeURIComponent(id)}`,
-      opts.fresh ? { cache: 'no-store' } : { next: { revalidate: 60 } },
+      { cache: 'no-store' },
     );
     return data.property ?? null;
   } catch (err) {

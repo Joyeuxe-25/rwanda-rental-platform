@@ -391,13 +391,21 @@ describe('GET /properties/:propertyId/images/:imageId (public bytes)', () => {
       cookie(ll.token),
     );
     expect(ownerImage.status).toBe(200);
-    await patch(`/api/v1/properties/mine/15048/publish`, {}, env, cookie(ll.token));
-    const ownerPublishedImage = await get(`/api/v1/properties/15048/images/${img.id}`, env, cookie(ll.token));
+    await patch(`/api/v1/properties/mine/${pidUnpub}/publish`, {}, env, cookie(ll.token));
+    const ownerPublishedImage = await get(
+      `/api/v1/properties/${pidUnpub}/images/${img.id}`,
+      env,
+      cookie(ll.token),
+    );
     expect(ownerPublishedImage.status).toBe(200);
     const other = await landlord(env);
     const otherPid = await makeProperty(env, other.token);
     const otherImg = await uploadOk(env, otherPid, other.token);
-    const otherOwnerImage = await get(`/api/v1/properties/${otherPid}/images/${otherImg}`, env, cookie(ll.token));
+    const otherOwnerImage = await get(
+      `/api/v1/properties/${otherPid}/images/${otherImg}`,
+      env,
+      cookie(ll.token),
+    );
     expect(otherOwnerImage.status).toBe(404);
     // Publish another property, then request the first property's image via it.
     const pidPub = await makeProperty(env, ll.token, true);

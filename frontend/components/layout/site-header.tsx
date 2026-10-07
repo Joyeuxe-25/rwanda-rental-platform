@@ -24,7 +24,7 @@ export function SiteHeader() {
           <Logo />
         </Link>
 
-        <div className="hidden lg:flex lg:items-center lg:gap-8">
+        <div className="hidden xl:flex xl:items-center xl:gap-8">
           <MainNav />
           <AuthNav />
         </div>
